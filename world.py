@@ -1,0 +1,82 @@
+import pygame
+import copy
+import random
+
+class World(object):
+    """World object for horror game. A series of random sprawling hallways in all directions."""
+
+    def __init__(self, width=20, height=20):
+        assert(type(width) is int)
+        assert(type(height) is int)
+        self.width = width
+        self.height = height
+        self.grid = [[{ (x-1, y): False,
+                        (x, y-1): False,
+                        (x+1, y): False,
+                        (x, y+1): False} for x in range(width)] for y in range(height)]
+
+    def resetWorld(self):
+        self.grid = [[{ (x-1, y): False,
+                        (x, y-1): False,
+                        (x+1, y): False,
+                        (x, y+1): False} for x in range(width)] for y in range(height)]
+
+    def genWorld(self, startX = 10, startY = 10):
+        """Initializes grid of hallways in world. Starts at a point and expands out to random points adjacent to it."""
+        assert(type(startX) is int)
+        assert(type(startY) is int)
+        connectedNodes = []  # nodes which have been expanded
+        activeNodes = [(startX, startY)]  # nodes which have yet to be expanded
+        while len(connectedNodes) < self.width*self.height*0.4 and len(activeNodes)>0:  # while less than 40% of world is accessible
+            for x, y in activeNodes:
+                sidePnts = []
+                if x > 0:                   sidePnts.append((x-1, y))
+                if x < len(self.grid[0])-1: sidePnts.append((x+1, y))
+                if y > 0:                   sidePnts.append((x, y-1))
+                if y < len(self.grid)-1:    sidePnts.append((x, y+1))
+                gridNewVal = {p: False for p in sidePnts}
+                # if adjacent node connected to self, then self connected to adj node too
+                for p in sidePnts:
+                    if self.grid[p[1]][p[0]][(x,y)] is True:
+                        gridNewVal[p] = True
+                # assign more random connections other than ones already touched
+                nTruesNow = len([i for i in gridNewVal.values() if i==True])  # how many connections already made before adding new ones
+                nTruesNeeded = 4 if nTruesNow==4 else random.randrange(nTruesNow+1, 5)  # random value for how many points self will extend to
+                sidePntsTemp = copy.deepcopy(sidePnts); random.shuffle(sidePntsTemp)
+                for p in sidePntsTemp:  # assign new True's to random adjacent nodes to self
+                    if self.grid[p[1]][p[0]][(x,y)] is False and nTruesNow < nTruesNeeded:
+                        gridNewVal[p] = True; nTruesNow += 1
+                self.grid[y][x] = gridNewVal
+                connectedNodes.append((x,y)) # node is now connected to system
+                activeNodes.remove((x,y)) # node has been expanded, no longer active
+                sidePnts = [p for p in sidePnts if gridNewVal[p]]
+                activeNodes.extend([p for p in sidePnts if p not in activeNodes and p not in connectedNodes])
+
+    def getHallways(self):
+        """Returns a list of 2-tuples, each of which contains the two sets of XY coords at the start and end of a hallway."""
+        return [((x1, y1), p2) for y1, col in enumerate(self.grid) \
+                               for x1, pntDict in enumerate(col) \
+                               for p2, isConnected in pntDict.items() if isConnected]
+
+    def getHallIntersectPoints(self):
+        """Returns a list of all coordinates that are connected to a hallway."""
+        return [(x, y) for y, col in enumerate(self.grid) \
+                       for x, pntDict in enumerate(col) if any(pntDict.values())]
+
+    def displayWorld(self):
+        """A simplistic display of what a randomly generated world looks like, for testing purposes."""
+        pygame.init()
+        screen = pygame.display.set_mode((len(self.grid[0])*100, len(self.grid)*100))
+        pygame.draw.rect(screen, (255, 255, 255), pygame.Rect(0, 0, len(self.grid[0])*100, len(self.grid[0])*100))
+        hallways = self.getHallways()
+        for p0, p1 in hallways:
+            pygame.draw.line(screen, (255,0,0), (p0[0]*100, p0[1]*100), (p1[0]*100, p1[1]*100))
+        pygame.display.flip()
+        while True: pass
+
+
+
+if __name__ == "__main__":
+    world = World(10, 10)
+    world.genWorld(5, 5)
+    world.displayWorld()

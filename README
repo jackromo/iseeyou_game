@@ -1,0 +1,15 @@
+Horror Game
+
+This is a top-down 2D survival horror game.
+The player starts in a random sewer network, having only a flashlight with limited FOV and finite battery life.
+An invisible enemy starts some distance from the player, who must keep the flashlight on for as long as possible while evading the enemy.
+The opponent slowly follows the player based on the noises they make, and cannot be looked at; if the player does, the enemy will move many times faster.
+The player must listen for the enemy's footsteps while running (loud), walking (some noise) and sneaking (no noise) to keep away while solving puzzles.
+
+Current features:
+-Working World generation algorithm
+
+Planned features:
+-Player class
+-Enemy class
+-GameSession class
