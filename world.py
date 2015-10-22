@@ -1,9 +1,11 @@
 import pygame
 import copy
 import random
+import time
 
 class World(object):
     """World object for horror game. A series of random sprawling hallways in all directions."""
+
 
     def __init__(self, width=20, height=20):
         assert(type(width) is int)
@@ -14,6 +16,9 @@ class World(object):
                         (x, y-1): False,
                         (x+1, y): False,
                         (x, y+1): False} for x in range(width)] for y in range(height)]
+        self.hallWidth = 200
+        self.hallLength = 800
+        self.floorColor = (127, 127, 127)
 
     def resetWorld(self):
         self.grid = [[{ (x-1, y): False,
@@ -63,20 +68,40 @@ class World(object):
         return [(x, y) for y, col in enumerate(self.grid) \
                        for x, pntDict in enumerate(col) if any(pntDict.values())]
 
-    def displayWorld(self):
-        """A simplistic display of what a randomly generated world looks like, for testing purposes."""
-        pygame.init()
-        screen = pygame.display.set_mode((len(self.grid[0])*100, len(self.grid)*100))
-        pygame.draw.rect(screen, (255, 255, 255), pygame.Rect(0, 0, len(self.grid[0])*100, len(self.grid[0])*100))
+    def drawWorld(self, screen, xCam, yCam):
+        """Draws world to screen with camera offset of (xCam, yCam)."""
+        worldWidth = self.width*self.hallWidth + (self.width-1)*self.hallLength
+        worldHeight = self.height*self.hallWidth + (self.height-1)*self.hallLength
+        pygame.draw.rect(screen, (0, 0, 0), pygame.Rect(0, 0, worldWidth, worldHeight))  # black background
         hallways = self.getHallways()
+        intersects = self.getHallIntersectPoints()
         for p0, p1 in hallways:
-            pygame.draw.line(screen, (255,0,0), (p0[0]*100, p0[1]*100), (p1[0]*100, p1[1]*100))
-        pygame.display.flip()
-        while True: pass
+            # starting x pnt of line = one intercept + many intercept-hallLength pairs + another intercept if line goes to right
+            xStart = self.hallWidth + p0[0]*(self.hallWidth + self.hallLength) + (self.hallWidth if p1[0]-p0[0]==1 else 0)
+            # starting y pnt of line = one intercept + many intercept-hallLength pairs + another intercept if line goes down
+            yStart = self.hallWidth + p0[1]*(self.hallWidth + self.hallLength) + (self.hallWidth if p1[1]-p0[1]==1 else 0)
+            xWidth = self.hallWidth if p1[0]-p0[0]==0 else self.hallLength*(p1[0]-p0[0])
+            yHeight = self.hallWidth if p1[1]-p0[1]==0 else self.hallLength*(p1[1]-p0[1])
+            rect = pygame.Rect(xStart-xCam, yStart-yCam, xWidth, yHeight)
+            pygame.draw.rect(screen, self.floorColor, rect)
+        for p in intersects:
+            xLeft = p[0]*(self.hallWidth + self.hallLength) + self.hallWidth
+            yUp = p[1]*(self.hallWidth + self.hallLength) + self.hallWidth
+            rect = pygame.Rect(xLeft-xCam, yUp-yCam, self.hallWidth, self.hallWidth)
+            pygame.draw.rect(screen, self.floorColor, rect)
+
 
 
 
 if __name__ == "__main__":
+    # makes random world, scrolls diagonally down it
     world = World(10, 10)
     world.genWorld(5, 5)
-    world.displayWorld()
+    pygame.init()
+    screen = pygame.display.set_mode((1000, 1000))
+    v = 0
+    while v<2000:
+        world.drawWorld(screen, v, v)
+        v+=1
+        time.sleep(0.01)
+        pygame.display.flip()
