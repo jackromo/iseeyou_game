@@ -9,6 +9,7 @@ The player must listen for the enemy's footsteps while running (loud), walking (
 Current features:
 -Working World generation algorithm
 -Ability to draw world to screen
+-Can detect if currently in hallways of world or not
 -Working eventGet-update-render loop in GameSession
 -Player and Enemy classes
 

@@ -70,6 +70,28 @@ class World(object):
         return [(x, y) for y, col in enumerate(self.grid) \
                        for x, pntDict in enumerate(col) if any(pntDict.values())]
 
+    def getHallBoundingBox(self, p0, p1):
+        # starting x pnt of line = one intercept + many intercept-hallLength pairs + another intercept if line goes to right
+        xStart = self.hallWidth + p0[0]*(self.hallWidth + self.hallLength) + (self.hallWidth if p1[0]-p0[0]==1 else 0)
+        # starting y pnt of line = one intercept + many intercept-hallLength pairs + another intercept if line goes down
+        yStart = self.hallWidth + p0[1]*(self.hallWidth + self.hallLength) + (self.hallWidth if p1[1]-p0[1]==1 else 0)
+        xEnd = xStart + (self.hallWidth if p1[0]-p0[0]==0 else self.hallLength*(p1[0]-p0[0]))
+        yEnd = yStart + (self.hallWidth if p1[1]-p0[1]==0 else self.hallLength*(p1[1]-p0[1]))
+        return (min([xStart, xEnd]), min([yStart, yEnd]), max([xStart, xEnd]), max([yStart, yEnd]))
+
+    def getIntersectBoundingBox(self, p):
+        xLeft = p[0]*(self.hallWidth + self.hallLength) + self.hallWidth
+        yUp = p[1]*(self.hallWidth + self.hallLength) + self.hallWidth
+        return (xLeft, yUp, xLeft+self.hallWidth, yUp+self.hallWidth)
+
+    def isInWorld(self, x, y):
+        hallBoxes = [self.getHallBoundingBox(p0, p1) for p0, p1 in self.getHallways()]
+        isInHall = any([xMin <= x <= xMax and yMin <= y <= yMax for xMin,yMin,xMax,yMax in hallBoxes])
+        intBoxes = [self.getIntersectBoundingBox(p) for p in self.getHallIntersectPoints()]
+        isInInt = any([xMin <= x <= xMax and yMin <= y <= yMax for xMin,yMin,xMax,yMax in intBoxes])
+        #print isInInt, isInHall
+        return isInHall or isInInt
+
     def drawWorld(self, screen, xCam, yCam):
         """Draws world to screen with camera offset of (xCam, yCam)."""
         worldWidth = self.width*self.hallWidth + (self.width-1)*self.hallLength
@@ -94,16 +116,19 @@ class World(object):
 
 
 
-
 if __name__ == "__main__":
-    # makes random world, scrolls diagonally down it
+    # makes random world, scrolls diagonally down it, prints if exits or re-enters bounds of world
     world = World(10, 10)
     world.genWorld(5, 5)
     pygame.init()
     screen = pygame.display.set_mode((1000, 1000))
-    v = 0
+    v = 0; inWorld = False
     while v<2000:
         world.drawWorld(screen, v, v)
         v+=1
         time.sleep(0.01)
+        iPrev = inWorld; inWorld = world.isInWorld(v+500, v+500)
+        if iPrev and not inWorld:   print "exited world"
+        elif not iPrev and inWorld: print "re-entered world"
+        pygame.draw.rect(screen, (255,0,0), pygame.Rect(498, 498, 4, 4))
         pygame.display.flip()
