@@ -90,6 +90,10 @@ class World(object):
         isInInt = any([xMin <= x <= xMax and yMin <= y <= yMax for xMin,yMin,xMax,yMax in intBoxes])
         return isInHall or isInInt
 
+    def getStartPoint(self):
+        x, y, _, _ = self.getIntersectBoundingBox((self.startX, self.startY))
+        return (x+ (self.hallWidth/2), y + (self.hallWidth/2))
+
     def drawWorld(self, screen, xCam, yCam):
         """Draws world to screen with camera offset of (xCam, yCam)."""
         worldWidth = self.width*self.hallWidth + (self.width-1)*self.hallLength

@@ -10,7 +10,7 @@ class GameSession(object):
     def __init__(self, screen):
         self.world = World(10, 10)
         self.world.genWorld(5, 5)
-        self.player = Player()
+        self.player = Player(*self.world.getStartPoint())
         self.enemy = Enemy()
         self.screen = screen
         self.keys = None
@@ -27,13 +27,15 @@ class GameSession(object):
             pygame.event.pump()
 
     def update(self):
-        pass
-        #player.update(self.keys)
+        self.player.update(self.keys, self.world)
+        x, y = self.screen.get_size()
+        self.xCam = self.player.xPos - x/2
+        self.yCam = self.player.yPos - y/2
         #enemy.update()
 
     def render(self):
         self.world.drawWorld(self.screen, self.xCam, self.yCam)
-        #self.player.drawTo(self.screen)
+        self.player.drawTo(self.screen)
         #self.enemy.drawTo(self.screen)
 
 
