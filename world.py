@@ -6,7 +6,6 @@ import time
 class World(object):
     """World object for horror game. A series of random sprawling hallways in all directions."""
 
-
     def __init__(self, width=20, height=20):
         assert(type(width) is int)
         assert(type(height) is int)
@@ -89,7 +88,6 @@ class World(object):
         isInHall = any([xMin <= x <= xMax and yMin <= y <= yMax for xMin,yMin,xMax,yMax in hallBoxes])
         intBoxes = [self.getIntersectBoundingBox(p) for p in self.getHallIntersectPoints()]
         isInInt = any([xMin <= x <= xMax and yMin <= y <= yMax for xMin,yMin,xMax,yMax in intBoxes])
-        #print isInInt, isInHall
         return isInHall or isInInt
 
     def drawWorld(self, screen, xCam, yCam):
@@ -115,20 +113,22 @@ class World(object):
             pygame.draw.rect(screen, self.floorColor, rect)
 
 
-
-if __name__ == "__main__":
+def main():
     # makes random world, scrolls diagonally down it, prints if exits or re-enters bounds of world
     world = World(10, 10)
     world.genWorld(5, 5)
     pygame.init()
     screen = pygame.display.set_mode((1000, 1000))
-    v = 0; inWorld = False
-    while v<2000:
+    inWorld = False
+    for v in range(2000):
         world.drawWorld(screen, v, v)
-        v+=1
         time.sleep(0.01)
-        iPrev = inWorld; inWorld = world.isInWorld(v+500, v+500)
-        if iPrev and not inWorld:   print "exited world"
-        elif not iPrev and inWorld: print "re-entered world"
+        inWorldPrev = inWorld; inWorld = world.isInWorld(v+500, v+500)
+        if inWorldPrev and not inWorld:   print "exited world"
+        elif not inWorldPrev and inWorld: print "re-entered world"
         pygame.draw.rect(screen, (255,0,0), pygame.Rect(498, 498, 4, 4))
         pygame.display.flip()
+
+
+if __name__ == "__main__":
+    main()
