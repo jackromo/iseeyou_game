@@ -8,8 +8,14 @@ The player must listen for the enemy's footsteps while running (loud), walking (
 
 Current features:
 -Working World generation algorithm
+-Ability to draw world to screen
+-Working eventGet-update-render loop in GameSession
+-Player and Enemy classes
 
 Planned features:
--Player class
--Enemy class
--GameSession class
+-Player controls
+-Collision detection w/ walls
+-Flashlight rendering algorithm
+-Enemy AI
+-Sounds
+-Game Over status

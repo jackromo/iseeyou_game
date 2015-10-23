@@ -18,6 +18,7 @@ class World(object):
                         (x, y+1): False} for x in range(width)] for y in range(height)]
         self.hallWidth = 200
         self.hallLength = 800
+        self.startX = 0; self.startY = 0
         self.floorColor = (127, 127, 127)
 
     def resetWorld(self):
@@ -30,6 +31,7 @@ class World(object):
         """Initializes grid of hallways in world. Starts at a point and expands out to random points adjacent to it."""
         assert(type(startX) is int)
         assert(type(startY) is int)
+        self.startX = startX; self.startY = startY
         connectedNodes = []  # nodes which have been expanded
         activeNodes = [(startX, startY)]  # nodes which have yet to be expanded
         while len(connectedNodes) < self.width*self.height*0.4 and len(activeNodes)>0:  # while less than 40% of world is accessible
