@@ -10,15 +10,17 @@ Current features:
 -Working World generation algorithm
 -Ability to draw world to screen
 -Can detect if currently in hallways of world or not
--Working eventGet-update-render loop in GameSession
+-Working eventGet -> update -> render loop in GameSession
 -Player and Enemy classes
 -Player movement controls
 -Collision detection w/ walls for player
--360 degrees light rendering algorithm
+-(not yet refactored) Directed light rendering algorithm (flashlight)
 
 Planned features:
--Directed light rendering algorithm
-  -Refactored algorithm implementation
+-Dedicated Flashlight class
+  -Refactored light algorithm implementation
+  -Light effects (flickering, dimming, decreasing intensity w/ distance of light, shutdown)
+-Textures for floor and player sprite
 -Enemy AI
 -Sounds
 -Game Over status

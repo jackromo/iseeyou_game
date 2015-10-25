@@ -43,6 +43,7 @@ def getIntersect(ray, segment):
 
     return (r_px + r_dx*T1, r_py + r_dy*T1)  # (x, y)
 
+
 def getActualAng(x, y):
     if x>0 and y>0: return math.atan2(y,x)
     elif x<0 and y>0: return math.atan2(-x, y) + 0.5*math.pi
@@ -61,6 +62,7 @@ class GameSession(object):
         self.player = Player(*self.world.getStartPoint())
         self.enemy = Enemy()
         self.screen = screen
+        print screen.get_size()
         self.keys = None
         self.xCam = 0
         self.yCam = 0
@@ -91,21 +93,31 @@ class GameSession(object):
         # get hallways linked to intersection + their bounding boxes + walls of intersect if no hallway there
         # use bounding boxes to get intersect lines (longest walls of halls + hall-less walls of intersect)
         # draw 4 line segments around all 4 edges of screen
-        # cast ray to each line segment end + ray 0.0001 to left + ray 0.0001 to right
+        # cast ray to each line segment end + ray 0.1 to left + ray 0.1 to right
         # get all intersects of rays + closest line segment, draw polygon by lines between intersects in clockwise manner
         # draw white image w/ black polygon + subtract this from orig image, will now have shadows
+        # draw white image w/ black triangle for flashlight-illuminated region, subtract this from original image too, will now have img w/ flashlight effect
 
         intBoxes = [self.world.getIntersectBoundingBox(inter) for inter in self.world.getHallIntersectPoints()]
 
         x = self.player.xPos; y = self.player.yPos
+
         getBoxDistToSelf = lambda box: math.sqrt(((box[0]+box[2])/2.0 - x)**2 + ((box[1]+box[3])/2.0 - y)**2)
         closestBox = min(intBoxes, key=getBoxDistToSelf)
         xl, yu, xr, yd = closestBox
         xIntReal = int((closestBox[0] - self.world.hallWidth) / (self.world.hallWidth + self.world.hallLength))
         yIntReal = int((closestBox[1] - self.world.hallWidth) / (self.world.hallWidth + self.world.hallLength))
         intDict = self.world.grid[yIntReal][xIntReal]
+        segments = []  # list of all segments that light rays will hit + stop against
+
         w, h = self.screen.get_size()
-        segments = []
+        centerX, centerY = (xr+xl)/2, (yd+yu)/2
+        regionW = regionH = self.world.hallWidth + 2*self.world.hallLength
+        segments.extend([{"a": (centerX-regionW/2, centerY-regionH/2), "b": (centerX+regionW/2, centerY-regionH/2)},
+                         {"a": (centerX+regionW/2, centerY-regionH/2), "b": (centerX+regionW/2, centerY+regionH/2)},
+                         {"a": (centerX+regionW/2, centerY+regionH/2), "b": (centerX-regionW/2, centerY+regionH/2)},
+                         {"a": (centerX-regionW/2, centerY+regionH/2), "b": (centerX-regionW/2, centerY-regionH/2)}])
+
         for p0, isConnected in intDict.items():
             if isConnected:
                 hallway = (p0, (xIntReal, yIntReal))
@@ -137,7 +149,7 @@ class GameSession(object):
             pnts.extend([(xA, yA), (xB, yB)])
 
         for p in pnts:
-            rays = [{"a": (x, y), "b": (p[0], p[1])},
+            rays = [{"a": (x, y), "b": p},
                     {"a": (x, y), "b": (p[0]+0.1, p[1])},
                     {"a": (x, y), "b": (p[0]-0.1, p[1])}]
             for ray in rays:
@@ -156,12 +168,31 @@ class GameSession(object):
 
         # sort out angles
         sortedInts = sorted(finalInts, key = lambda p: getActualAng(p[0]-x, p[1]-y))
+
         # temporary surface = white w/ black polygon of visible regions
         tempSurface = pygame.Surface(self.screen.get_size())
         pygame.draw.rect(tempSurface, (255 , 255, 255), pygame.Rect(0, 0, tempSurface.get_size()[0], tempSurface.get_size()[1]))
         pygame.draw.polygon(tempSurface, (0, 0, 0), [(xp-self.xCam, yp-self.yCam) for xp,yp in sortedInts])
-        # subtract tempSurface from own screen, white tempSurf pixel -> black screen pixel, black tempSurf pixel -> screen pixel stays same
+
+        # get region of flashlight-produced light triangle
+        xm, ym = pygame.mouse.get_pos()
+        xm += self.xCam; ym += self.yCam
+        mouseAng = getActualAng(xm - self.player.xPos, ym - self.player.yPos)
+        xw, yw = self.screen.get_size()
+        mousePnt1 = (self.player.xPos + 2*xw*math.cos(mouseAng-0.75), self.player.yPos + 2*yw*math.sin(mouseAng-0.75))
+        mousePnt2 = (self.player.xPos + 2*xw*math.cos(mouseAng+0.75), self.player.yPos + 2*yw*math.sin(mouseAng+0.75))
+
+        # triangle surface = white w/ black triangle of what flashlight reveals
+        triangSurface = pygame.Surface(self.screen.get_size())
+        pygame.draw.rect(triangSurface, (255 , 255, 255), pygame.Rect(0, 0, triangSurface.get_size()[0], triangSurface.get_size()[1]))
+        triangLs = [(self.player.xPos, self.player.yPos), mousePnt1, mousePnt2]
+        pygame.draw.polygon(triangSurface, (0, 0, 0), [(xp-self.xCam, yp-self.yCam) for xp,yp in triangLs])
+
+        # subtract tempSurface and triangSurface from own screen
+        # white surf pixel -> black screen pixel, black surf pixel -> screen pixel stays same
         self.screen.blit(tempSurface, (0,0), special_flags=pygame.BLEND_SUB)
+        self.screen.blit(triangSurface, (0,0), special_flags=pygame.BLEND_SUB)
+
 
 def main():
     pygame.init()
