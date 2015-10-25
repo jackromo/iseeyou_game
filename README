@@ -14,13 +14,14 @@ Current features:
 -Player and Enemy classes
 -Player movement controls
 -Collision detection w/ walls for player
--(not yet refactored) Directed light rendering algorithm (flashlight)
+-Flashlight class for directed light rendering algorithm
 
 Planned features:
--Dedicated Flashlight class
-  -Refactored light algorithm implementation
-  -Light effects (flickering, dimming, decreasing intensity w/ distance of light, shutdown)
+-Effective FPS management in GameSession
+-Light effects (flickering, dimming, decreasing intensity w/ distance of light, shutdown)
 -Textures for floor and player sprite
 -Enemy AI
 -Sounds
--Game Over status
+-Game Over and Paused statuses
+-Main menu
+  -New game, high scores, exit
