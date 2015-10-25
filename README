@@ -14,9 +14,11 @@ Current features:
 -Player and Enemy classes
 -Player movement controls
 -Collision detection w/ walls for player
+-360 degrees light rendering algorithm
 
 Planned features:
--Flashlight rendering algorithm
+-Directed light rendering algorithm
+  -Refactored algorithm implementation
 -Enemy AI
 -Sounds
 -Game Over status

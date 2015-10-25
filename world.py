@@ -15,8 +15,8 @@ class World(object):
                         (x, y-1): False,
                         (x+1, y): False,
                         (x, y+1): False} for x in range(width)] for y in range(height)]
-        self.hallWidth = 200
-        self.hallLength = 800
+        self.hallWidth = 300
+        self.hallLength = 1200
         self.startX = 0; self.startY = 0
         self.floorColor = (127, 127, 127)
 
@@ -25,6 +25,15 @@ class World(object):
                         (x, y-1): False,
                         (x+1, y): False,
                         (x, y+1): False} for x in range(width)] for y in range(height)]
+
+    def getSidePnts(self, x, y):
+        """Get all intersect points adjacent to a point. Ignore points outside of grid boundaries."""
+        sidePnts = []
+        if x > 0:                   sidePnts.append((x-1, y))
+        if x < len(self.grid[0])-1: sidePnts.append((x+1, y))
+        if y > 0:                   sidePnts.append((x, y-1))
+        if y < len(self.grid)-1:    sidePnts.append((x, y+1))
+        return sidePnts
 
     def genWorld(self, startX = 10, startY = 10):
         """Initializes grid of hallways in world. Starts at a point and expands out to random points adjacent to it."""
@@ -35,12 +44,8 @@ class World(object):
         activeNodes = [(startX, startY)]  # nodes which have yet to be expanded
         while len(connectedNodes) < self.width*self.height*0.4 and len(activeNodes)>0:  # while less than 40% of world is accessible
             for x, y in activeNodes:
-                sidePnts = []
-                if x > 0:                   sidePnts.append((x-1, y))
-                if x < len(self.grid[0])-1: sidePnts.append((x+1, y))
-                if y > 0:                   sidePnts.append((x, y-1))
-                if y < len(self.grid)-1:    sidePnts.append((x, y+1))
-                gridNewVal = {p: False for p in sidePnts}
+                sidePnts = self.getSidePnts(x, y)
+                gridNewVal = {p: False for p in self.grid[y][x].keys()}
                 # if adjacent node connected to self, then self connected to adj node too
                 for p in sidePnts:
                     if self.grid[p[1]][p[0]][(x,y)] is True:
@@ -48,8 +53,8 @@ class World(object):
                 # assign more random connections other than ones already touched
                 nTruesNow = len([i for i in gridNewVal.values() if i==True])  # how many connections already made before adding new ones
                 nTruesNeeded = 4 if nTruesNow==4 else random.randrange(nTruesNow+1, 5)  # random value for how many points self will extend to
-                sidePntsTemp = copy.deepcopy(sidePnts); random.shuffle(sidePntsTemp)
-                for p in sidePntsTemp:  # assign new True's to random adjacent nodes to self
+                # assign new True's to random adjacent nodes to self
+                for p in sorted(sidePnts, key=lambda x: random.random()):
                     if self.grid[p[1]][p[0]][(x,y)] is False and nTruesNow < nTruesNeeded:
                         gridNewVal[p] = True; nTruesNow += 1
                 self.grid[y][x] = gridNewVal
@@ -57,6 +62,17 @@ class World(object):
                 activeNodes.remove((x,y)) # node has been expanded, no longer active
                 sidePnts = [p for p in sidePnts if gridNewVal[p]]
                 activeNodes.extend([p for p in sidePnts if p not in activeNodes and p not in connectedNodes])
+        self.correctStrayIntersects()
+
+    def correctStrayIntersects(self):
+        """After setting all values, some hallways may be disconnected, so connect all dissonant hallways."""
+        for y, row in enumerate(self.grid):
+            for x, valDict in enumerate(row):
+                sidePnts = self.getSidePnts(x, y)
+                # if adjacent node connected to self, then self connected to adj node too
+                for p in sidePnts:
+                    if self.grid[p[1]][p[0]][(x,y)] is True:
+                        self.grid[y][x][p] = True
 
     def getHallways(self):
         """Returns a list of 2-tuples, each of which contains the two sets of XY coords at the start and end of a hallway."""

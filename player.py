@@ -10,7 +10,7 @@ class Player(object):
         self.lightAng = 0  # angle of light above rightwards vector, in radians
         self.dx = 0  # x and y components of own velocity
         self.dy = 0
-        self.speed = 5  # general speed of player when moving (pixels per update)
+        self.speed = 3  # general speed of player when moving (pixels per update)
 
     def update(self, state, world):
         """Get speed of user in x and y based on keys pressed, detect collisions, and move player."""
@@ -21,10 +21,10 @@ class Player(object):
         if state[pygame.K_a]: self.dx -= self.speed
         if state[pygame.K_s]: self.dy += self.speed
         if state[pygame.K_d]: self.dx += self.speed
-        # check if will remain in world after turn; if not, negate movement (collision detection)
-        if not world.isInWorld(self.xPos + self.dx, self.yPos): self.dx = 0
-        if not world.isInWorld(self.xPos, self.yPos + self.dy): self.dy = 0
-        if self.dx!=0 and self.dy!=0 and not world.isInWorld(self.xPos+self.dx, self.yPos+self.dy):  # may be hitting edge of a corner
+        # check if will remain in world in 2 of same turn; if not, negate movement (collision detection)
+        if not world.isInWorld(self.xPos + 2*self.dx, self.yPos): self.dx = 0
+        if not world.isInWorld(self.xPos, self.yPos + 2*self.dy): self.dy = 0
+        if self.dx!=0 and self.dy!=0 and not world.isInWorld(self.xPos+ 2*self.dx, self.yPos+ 2*self.dy):  # may be hitting edge of a corner
             self.dx = 0; self.dy = 0
         # update position
         self.xPos += self.dx
