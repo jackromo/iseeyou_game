@@ -4,6 +4,7 @@ This is a top-down 2D survival horror game.
 The player starts in a random sewer network, having only a flashlight with limited FOV and finite battery life.
 An invisible enemy starts some distance from the player, who must keep the flashlight on for as long as possible while evading the enemy.
 The opponent slowly follows the player based on the noises they make, and cannot be looked at; if the player does, the enemy will move many times faster.
+The enemy is also invisible unless the player shines their flashlight directly at them - if they do, they will see a series of footsteps running towards them.
 The player must listen for the enemy's footsteps while running (loud), walking (some noise) and sneaking (no noise) to keep away while solving puzzles.
 
 Current features:

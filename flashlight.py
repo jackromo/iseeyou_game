@@ -78,7 +78,8 @@ class Flashlight(object):
         maskFlashlightNoShadows = self.getFlashlightMaskNoShadows(player)
 
         # subtract 360 degree light emission mask and flashlight mask w/o shadows from own screen
-        # white surf pixel -> black screen pixel, black surf pixel -> screen pixel stays same
+        # from triangle mask, light grey region outside of triangle -> darkened version of screen pixel
+        # white mask pixel -> black screen pixel, black mask pixel -> screen pixel stays same
         self.screen.blit(mask360NoFlashlight, (0,0), special_flags=pygame.BLEND_SUB)
         self.screen.blit(maskFlashlightNoShadows, (0,0), special_flags=pygame.BLEND_SUB)
 
@@ -196,9 +197,9 @@ class Flashlight(object):
         mousePnt1 = (player.xPos + 2*screenWidth*math.cos(mouseAng-self.angle/2.0), player.yPos + 2*screenHeight*math.sin(mouseAng-self.angle/2.0))
         mousePnt2 = (player.xPos + 2*screenWidth*math.cos(mouseAng+self.angle/2.0), player.yPos + 2*screenHeight*math.sin(mouseAng+self.angle/2.0))
 
-        # triangle surface = white w/ black triangle of what flashlight reveals
+        # triangle surface = grey w/ black triangle of what flashlight reveals
         triangSurface = pygame.Surface(self.screen.get_size())
-        pygame.draw.rect(triangSurface, (255 , 255, 255), pygame.Rect(0, 0, triangSurface.get_size()[0], triangSurface.get_size()[1]))
+        pygame.draw.rect(triangSurface, (110 , 110, 110), pygame.Rect(0, 0, triangSurface.get_size()[0], triangSurface.get_size()[1]))
         triangLs = [(player.xPos, player.yPos), mousePnt1, mousePnt2]
         pygame.draw.polygon(triangSurface, (0, 0, 0), [(x-self.xCam, y-self.yCam) for x,y in triangLs])
 

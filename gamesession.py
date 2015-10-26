@@ -13,7 +13,7 @@ class GameSession(object):
         self.world.genWorld(5, 5)
         self.player = Player(*self.world.getStartPoint())
         self.enemy = Enemy()
-        self.flashlight = Flashlight(screen, 1.5)
+        self.flashlight = Flashlight(screen, 1)  # flashlight w/ range of 1 radian
         self.screen = screen
         self.keys = None
         self.xCam = 0
