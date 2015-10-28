@@ -24,10 +24,9 @@ class Enemy(object):
         self.distDownPath = 0
         self.currentAI = FOLLOWING
 
-    def update(self, state, world, player):
+    def update(self, world, player, flashlight, camPos):
         self.dx = 0; self.dy = 0
-        self.dx, self.dy = self.getAIDecision(world, player)
-
+        self.dx, self.dy = self.getAIDecision(world, player, flashlight, camPos)
         # collision detection
         if not world.isInWorld(self.xPos + 2*self.dx, self.yPos): self.dx = 0
         if not world.isInWorld(self.xPos, self.yPos + 2*self.dy): self.dy = 0
@@ -47,12 +46,34 @@ class Enemy(object):
             return 0, 0
         else:
             dx, dy = float(dx) / max([abs(dx),abs(dy)]), float(dy) / max([abs(dx), abs(dy)])
-            return int(dx)*self.speed, int(dy)*self.speed
+            return int(dx*self.speed), int(dy*self.speed)
 
-    def getAIDecision(self, world, player):
+    def changeAIState(self, world, player, flashlight, camPos):
+        """Check if AI behaviour should now change, alter it appropriately if so."""
+        distToPlayer = math.sqrt((self.xPos-player.xPos)**2 + (self.yPos-player.yPos)**2)
+        if distToPlayer <= world.hallLength:
+            if self.isInFlashlightRegion(flashlight, player, camPos) and self.currentAI != CHASING:
+                self.currentAI = CHASING
+            elif not self.isInFlashlightRegion(flashlight, player, camPos) and self.currentAI != CLOSE:
+                self.currentAI = CLOSE
+        elif distToPlayer <= (world.hallLength+world.hallWidth)*3:
+            if self.currentAI == CLOSE or self.currentAI == CHASING:
+                self.currentAI = RETURNING
+            elif self.currentAI == WANDERING:
+                self.currentAI = FOLLOWING
+        elif distToPlayer > (world.hallLength+world.hallWidth)*3 \
+                and self.currentAI != RETURNING and self.currentAI != WANDERING:
+            self.currentAI = WANDERING
+
+    def getAIDecision(self, world, player, flashlight, camPos):
         """Returns a pair of (dx, dy) for next update movement."""
+        # check if AI behaviour should now change
+        self.changeAIState(world, player, flashlight, camPos)
+        # make appropriate movement for current AI state
         if self.currentAI == WANDERING or self.currentAI == FOLLOWING:
             # Is following predetermined paths from intersection to intersection.
+            self.speed = player.speed * 0.5
+            # If close enough to player, start following them. Otherwise, keep wandering.
             dx, dy = self.followPathUpdate(world)
             if dx==0 and dy==0:  # has reached destination bc. no further movement needed
                 self.distDownPath += 1
@@ -72,15 +93,28 @@ class Enemy(object):
                         self.currentPath.setPathBetween(pnt1, playerCoords)
                 dx, dy = self.followPathUpdate(world)  # reset goal point to next one in path
             return dx, dy
-        elif self.currentAI == CLOSE:
-            # Is moving directly towards player at speed < player speed.
-            pass
-        elif self.currentAI == CHASING:
-            # Is moving directly towards player very fast - flashlight aimed at enemy.
-            pass
+        elif self.currentAI == CLOSE or self.currentAI == CHASING:
+            # Is moving directly towards player at speed < player speed if close or > player speed if chasing (flashlight looking at enemy when chasing).
+            self.speed = player.speed * (1.5 if self.currentAI == CHASING else 0.5)
+            diffX, diffY = (player.xPos - self.xPos, player.yPos - self.yPos)
+            if diffX == 0 and diffY == 0:
+                return 0, 0
+            else:
+                dx, dy = float(diffX) / max([abs(diffX), abs(diffY)]), float(diffY) / max([abs(diffX), abs(diffY)])
+                return int(math.ceil(dx*self.speed)), int(math.ceil(dy*self.speed))
         elif self.currentAI == RETURNING:
             # Is returning from directly following player to closest intersection, then WANDERING.
-            pass
+            self.speed = player.speed * 0.5
+            closeInt = world.getClosestIntersectPoint(self)
+            xl, yu, xr, yd = world.getIntersectBoundingBox(closeInt)
+            approachedCenterPnt = ((xl+xr)/2, (yu+yd)/2)
+            dx, dy = (approachedCenterPnt[0]-self.xPos, approachedCenterPnt[1]-self.yPos)
+            if dx == 0 and dy == 0:
+                self.currentAI = WANDERING
+                return 0, 0
+            else:
+                dx, dy = float(dx) / max([abs(dx),abs(dy)]), float(dy) / max([abs(dx), abs(dy)])
+                return int(dx*self.speed), int(dy*self.speed)
 
     def isInFlashlightRegion(self, flashlight, player, camPos):
         playerEnemyAng = getActualAng(self.xPos-player.xPos, self.yPos-player.yPos)
@@ -124,6 +158,7 @@ class Path(object):
         else:
             while True:
                 for path in paths:
+                    # take last item in path being investigated, and extend it in all possible directions
                     pntToExpand = path[-1]
                     x, y = pntToExpand
                     newPnts = [p for p in self.worldGrid[y][x].keys() if self.worldGrid[y][x][p] and p not in coveredPnts]

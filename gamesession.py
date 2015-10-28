@@ -31,7 +31,7 @@ class GameSession(object):
 
     def update(self):
         self.player.update(self.keys, self.world)
-        self.enemy.update(self.keys, self.world, self.player)
+        self.enemy.update(self.world, self.player, self.flashlight, (self.xCam, self.yCam))
         x, y = self.screen.get_size()
         self.xCam = self.player.xPos - x/2
         self.yCam = self.player.yPos - y/2
