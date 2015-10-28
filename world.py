@@ -1,6 +1,7 @@
 import pygame
 import copy
 import random
+import math
 import time
 
 class World(object):
@@ -109,6 +110,16 @@ class World(object):
     def getStartPoint(self):
         x, y, _, _ = self.getIntersectBoundingBox((self.startX, self.startY))
         return (x+ (self.hallWidth/2), y + (self.hallWidth/2))
+
+    def getClosestIntersectPoint(self, player):
+        intBoxes = [self.getIntersectBoundingBox(inter) for inter in self.getHallIntersectPoints()]
+        xPlayer = player.xPos; yPlayer = player.yPos
+        getBoxDistToSelf = lambda box: math.sqrt(((box[0]+box[2])/2.0 - xPlayer)**2 + ((box[1]+box[3])/2.0 - yPlayer)**2)
+        closestBox = min(intBoxes, key=getBoxDistToSelf)
+        xl, yu, xr, yd = closestBox
+        xIntReal = int((xl - self.hallWidth) / (self.hallWidth + self.hallLength))
+        yIntReal = int((yu - self.hallWidth) / (self.hallWidth + self.hallLength))
+        return (xIntReal, yIntReal)
 
     def drawWorld(self, screen, xCam, yCam):
         """Draws world to screen with camera offset of (xCam, yCam)."""

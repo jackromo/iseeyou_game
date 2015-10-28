@@ -10,7 +10,7 @@ class Player(object):
         self.lightAng = 0  # angle of light above rightwards vector, in radians
         self.dx = 0  # x and y components of own velocity
         self.dy = 0
-        self.speed = 3  # general speed of player when moving (pixels per update)
+        self.speed = 6  # general speed of player when moving (pixels per update)
 
     def update(self, state, world):
         """Get speed of user in x and y based on keys pressed, detect collisions, and move player."""

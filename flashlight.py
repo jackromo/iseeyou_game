@@ -70,7 +70,7 @@ class Flashlight(object):
 
         self.xCam, self.yCam = camPos
 
-        closestIntersect = self.getClosestIntersectPoint(world, player)
+        closestIntersect = world.getClosestIntersectPoint(player)
         segments = self.getCloseWallSegments(world, closestIntersect[0], closestIntersect[1])
         lightIntersects = self.getLightSegIntersects(segments, player)
 
@@ -82,20 +82,6 @@ class Flashlight(object):
         # white mask pixel -> black screen pixel, black mask pixel -> screen pixel stays same
         self.screen.blit(mask360NoFlashlight, (0,0), special_flags=pygame.BLEND_SUB)
         self.screen.blit(maskFlashlightNoShadows, (0,0), special_flags=pygame.BLEND_SUB)
-
-
-    def getClosestIntersectPoint(self, world, player):
-        intBoxes = [world.getIntersectBoundingBox(inter) for inter in world.getHallIntersectPoints()]
-
-        xPlayer = player.xPos; yPlayer = player.yPos
-
-        getBoxDistToSelf = lambda box: math.sqrt(((box[0]+box[2])/2.0 - xPlayer)**2 + ((box[1]+box[3])/2.0 - yPlayer)**2)
-        closestBox = min(intBoxes, key=getBoxDistToSelf)
-        xl, yu, xr, yd = closestBox
-        xIntReal = int((xl - world.hallWidth) / (world.hallWidth + world.hallLength))
-        yIntReal = int((yu - world.hallWidth) / (world.hallWidth + world.hallLength))
-
-        return (xIntReal, yIntReal)
 
 
     def getCloseWallSegments(self, world, xIntersectReal, yIntersectReal):

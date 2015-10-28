@@ -16,12 +16,22 @@ Current features:
 -Player movement controls
 -Collision detection w/ walls for player
 -Flashlight class for directed light rendering algorithm
+-Enemy display and AI
+  - Only visible if flashlight shining directly at it
+  - Exists in 4 possible states of behaviour
+    - wandering: moving from hallway intersection to intersection in random sequences, has not detected player
+    - following: has detected sound of player from a distance, going from intersection to intersection, can be heard quietly
+    - close:     is following player and is on screen somewhere, moving directly towards player, can be heard loudly
+    - chasing:   has been hit w/ flashlight and is on screen, like 'close' but very fast
+    - returning: player has escaped enemy, is now returning to closest intersection + return to 'wandering' state
+  - Only 'wandering' and 'following' implemeted
 
 Planned features:
 -Effective FPS management in GameSession
 -Light effects (flickering, dimming, decreasing intensity w/ distance of light, shutdown)
+-'close', 'chasing' and 'returning' enemy AI states
+-Player controls for player running, walking and sneaking
 -Textures for floor and player sprite
--Enemy AI
 -Sounds
 -Game Over and Paused statuses
 -Main menu

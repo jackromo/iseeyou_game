@@ -1,4 +1,4 @@
-import pygame, math
+import pygame, math, time
 from world import World
 from player import Player
 from enemy import Enemy
@@ -12,12 +12,13 @@ class GameSession(object):
         self.world = World(10, 10)
         self.world.genWorld(5, 5)
         self.player = Player(*self.world.getStartPoint())
-        self.enemy = Enemy()
+        self.enemy = Enemy(self.player.xPos, self.player.yPos, self.world)
         self.flashlight = Flashlight(screen, 1)  # flashlight w/ range of 1 radian
         self.screen = screen
         self.keys = None
         self.xCam = 0
         self.yCam = 0
+        self.fps = 50
 
     def start(self):
         self.keys = pygame.key.get_pressed()
@@ -30,15 +31,15 @@ class GameSession(object):
 
     def update(self):
         self.player.update(self.keys, self.world)
+        self.enemy.update(self.keys, self.world, self.player)
         x, y = self.screen.get_size()
         self.xCam = self.player.xPos - x/2
         self.yCam = self.player.yPos - y/2
-        #self.enemy.update()
 
     def render(self):
         self.world.drawWorld(self.screen, self.xCam, self.yCam)
         self.player.drawTo(self.screen)
-        #self.enemy.drawTo(self.screen)
+        self.enemy.drawTo(self.screen, self.flashlight, self.player, (self.xCam, self.yCam))
         self.flashlight.drawLight(self.world, self.player, (self.xCam, self.yCam))
 
 def main():
