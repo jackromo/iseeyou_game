@@ -7,6 +7,8 @@ class Player(object):
     def __init__(self, xPos, yPos):
         self.xPos = xPos
         self.yPos = yPos
+        self.footstepSound = pygame.mixer.Sound("resources/sound/footsteps.wav")
+        self.isFootstepsPlaying = False
         self.lightAng = 0  # angle of light above rightwards vector, in radians
         self.dx = 0  # x and y components of own velocity
         self.dy = 0
@@ -29,6 +31,14 @@ class Player(object):
         # update position
         self.xPos += self.dx
         self.yPos += self.dy
+        # play sound of footsteps
+        if (self.dx!=0 or self.dy!=0) and not self.isFootstepsPlaying:
+            self.footstepSound.play(loops=-1)  # play on repeat indefinitely
+            self.isFootstepsPlaying = True
+        elif (self.dx==0 and self.dy==0) and self.isFootstepsPlaying:
+            self.footstepSound.stop()  # when player stops moving, stop footstep sound loop
+            self.isFootstepsPlaying = False
+
 
     def kill(self):
         pass

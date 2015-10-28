@@ -24,13 +24,15 @@ Current features:
     - close:     is following player and is on screen somewhere, moving directly towards player, can be heard loudly
     - chasing:   has been hit w/ flashlight and is on screen, like 'close' but very fast
     - returning: player has escaped enemy, is now returning to closest intersection + return to 'wandering' state
+-Sound effects for player and enemy
+  - Footsteps for player
+  - Static sound effect for enemy that gets louder when closer to player
 
 Planned features:
 -Effective FPS management in GameSession
 -Light effects (flickering, dimming, decreasing intensity w/ distance of light, shutdown)
 -Player controls for player running, walking and sneaking
 -Textures for floor, enemy and player sprite
--Sounds
 -Game Over and Paused statuses
 -Main menu
   -New game, high scores, exit

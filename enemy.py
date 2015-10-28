@@ -17,6 +17,9 @@ class Enemy(object):
         self.yPos = yPos
         self.dx = self.dy = 0
         self.speed = 4
+        self.sound = pygame.mixer.Sound("resources/sound/enemyNoise.wav")
+        self.isSoundPlaying = False
+        self.maxPlayerDistForSound = 3*(world.hallWidth + world.hallLength)  # dist where sound plays + enemy follows player
         self.currentPath = Path(world)
         gridX = (self.xPos - world.hallWidth) / (world.hallWidth + world.hallLength)
         gridY = (self.yPos - world.hallWidth) / (world.hallWidth + world.hallLength)
@@ -34,6 +37,19 @@ class Enemy(object):
             self.dx = 0; self.dy = 0
         self.xPos += self.dx
         self.yPos += self.dy
+        # play sound, if closer to player then sound = louder
+        self.updateSound(player)
+
+    def updateSound(self, player):
+        """Update static noise of enemy to be louder if enemy is closer. Silent if too far away."""
+        distToPlayer = math.sqrt((self.xPos-player.xPos)**2 + (self.yPos-player.yPos)**2)
+        volume = 1.0 - (distToPlayer/self.maxPlayerDistForSound)  # will equal 1 (max volume) if distToPlayer = 0, less if distToPlayer > 0
+        if not self.isSoundPlaying:
+            self.sound.play(loops=-1)
+            self.isSoundPlaying=True
+        self.sound.set_volume(0 if distToPlayer > self.maxPlayerDistForSound else volume)
+        if distToPlayer <= self.maxPlayerDistForSound:
+            print volume
 
     def followPathUpdate(self, world):
         """Return (dx, dy) result of update where enemy continues to follow its predecided path."""
@@ -43,7 +59,6 @@ class Enemy(object):
         approachedCenterPnt = ((xl+xr)/2, (yu+yd)/2)  # actual point enemy is approaching in world
         dx, dy = (approachedCenterPnt[0]-self.xPos, approachedCenterPnt[1]-self.yPos)
         if dx == 0 and dy == 0:
-            print "got to ", currentApproachedPnt
             return 0, 0
         else:
             dx, dy = float(dx) / max([abs(dx),abs(dy)]), float(dy) / max([abs(dx), abs(dy)])
@@ -57,7 +72,7 @@ class Enemy(object):
                 self.currentAI = CHASING
             elif not self.isInFlashlightRegion(flashlight, player, camPos) and self.currentAI != CLOSE:
                 self.currentAI = CLOSE
-        elif distToPlayer <= (world.hallLength+world.hallWidth)*5:
+        elif distToPlayer <= self.maxPlayerDistForSound:
             if self.currentAI == CLOSE or self.currentAI == CHASING:
                 self.currentAI = RETURNING
             elif self.currentAI == WANDERING:
@@ -65,6 +80,7 @@ class Enemy(object):
                 # is still following WANDERING path, reset path to closest intersect so new path can be made
                 nextPos = world.getClosestIntersectPoint(self)
                 self.currentPath.setPathBetween(nextPos, nextPos)
+                self.distDownPath = 0
 
     def getAIDecision(self, world, player, flashlight, camPos):
         """Returns a pair of (dx, dy) for next update movement."""
@@ -73,14 +89,13 @@ class Enemy(object):
         # make appropriate movement for current AI state
         if self.currentAI == WANDERING or self.currentAI == FOLLOWING:
             # Is following predetermined paths from intersection to intersection.
-            self.speed = player.speed
+            self.speed = player.speed * 0.7
             # If close enough to player, start following them. Otherwise, keep wandering.
             dx, dy = self.followPathUpdate(world)
             if dx==0 and dy==0:  # has reached destination bc. no further movement needed
                 self.distDownPath += 1
                 if self.distDownPath == self.currentPath.getPathLength()-1: # reset path randomly if completed
-                    pntLs = [(x, y) for y, row in enumerate(world.grid) \
-                                    for x, pntDict in enumerate(row) if any(pntDict.values())]
+                    pntLs = world.getPntList()
                     self.distDownPath = 0
                     gridX = (self.xPos - world.hallWidth) / (world.hallWidth + world.hallLength) # get which intersect enemy is in from its real position
                     gridY = (self.yPos - world.hallWidth) / (world.hallWidth + world.hallLength)
@@ -89,7 +104,7 @@ class Enemy(object):
                     # if has followed player to where it last heard them + player has left when enemy arrives, set self to WANDERING
                     # ie. lost track of where player is
                     distToPlayer = math.sqrt((self.xPos-player.xPos)**2 + (self.yPos-player.yPos)**2)
-                    if distToPlayer > (world.hallLength + world.hallWidth)*5 and self.currentAI != WANDERING:
+                    if distToPlayer > self.maxPlayerDistForSound and self.currentAI != WANDERING:
                         self.currentAI = WANDERING
                     if self.currentAI == WANDERING:
                         pnt2 = random.choice(pntLs)
@@ -97,12 +112,11 @@ class Enemy(object):
                     elif self.currentAI == FOLLOWING:
                         playerCoords = world.getClosestIntersectPoint(player)
                         self.currentPath.setPathBetween(pnt1, playerCoords)
-                        print playerCoords, self.currentPath.getPathList()
                 dx, dy = self.followPathUpdate(world)  # reset goal point to next one in path
             return dx, dy
         elif self.currentAI == CLOSE or self.currentAI == CHASING:
             # Is moving directly towards player at speed < player speed if close or > player speed if chasing (flashlight looking at enemy when chasing).
-            self.speed = player.speed * (1.5 if self.currentAI == CHASING else 0.5)
+            self.speed = player.speed * (1.5 if self.currentAI == CHASING else 0.7)
             diffX, diffY = (player.xPos - self.xPos, player.yPos - self.yPos)
             if diffX == 0 and diffY == 0:
                 return 0, 0
@@ -126,7 +140,6 @@ class Enemy(object):
                 return 0, 0
             else:
                 dx, dy = float(dx) / max([abs(dx),abs(dy)]), float(dy) / max([abs(dx), abs(dy)])
-                print int(dx*self.speed), int(dy*self.speed)
                 return int(dx*self.speed), int(dy*self.speed)
 
     def isInFlashlightRegion(self, flashlight, player, camPos):
