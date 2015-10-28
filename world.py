@@ -65,6 +65,10 @@ class World(object):
                 activeNodes.extend([p for p in sidePnts if p not in activeNodes and p not in connectedNodes])
         self.correctStrayIntersects()
 
+    def getPntList(self):
+        return [(x, y) for y, row in enumerate(self.grid) \
+                       for x, pntDict in enumerate(row) if any(pntDict.values())]
+
     def correctStrayIntersects(self):
         """After setting all values, some hallways may be disconnected, so connect all dissonant hallways."""
         for y, row in enumerate(self.grid):

@@ -1,4 +1,4 @@
-import pygame, math, time
+import pygame, math, time, random
 from world import World
 from player import Player
 from enemy import Enemy
@@ -12,13 +12,18 @@ class GameSession(object):
         self.world = World(10, 10)
         self.world.genWorld(5, 5)
         self.player = Player(*self.world.getStartPoint())
-        self.enemy = Enemy(self.player.xPos, self.player.yPos, self.world)
+        # get enemy's random position
+        pntLs = self.world.getPntList()
+        pntLs.remove(self.world.getClosestIntersectPoint(self.player))
+        pnt = random.choice(pntLs)
+        xl, yu, xr, yd = self.world.getIntersectBoundingBox(pnt)
+        px, py = ((xl+xr)/2, (yu+yd)/2)
+        self.enemy = Enemy(px, py, self.world)
         self.flashlight = Flashlight(screen, 1)  # flashlight w/ range of 1 radian
         self.screen = screen
         self.keys = None
         self.xCam = 0
         self.yCam = 0
-        self.fps = 50
 
     def start(self):
         self.keys = pygame.key.get_pressed()

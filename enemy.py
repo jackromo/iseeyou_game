@@ -17,12 +17,12 @@ class Enemy(object):
         self.yPos = yPos
         self.dx = self.dy = 0
         self.speed = 4
-        self.currentPath = Path(world.grid)
+        self.currentPath = Path(world)
         gridX = (self.xPos - world.hallWidth) / (world.hallWidth + world.hallLength)
         gridY = (self.yPos - world.hallWidth) / (world.hallWidth + world.hallLength)
         self.currentPath.setPathBetween((gridX, gridY), (gridX, gridY))
         self.distDownPath = 0
-        self.currentAI = FOLLOWING
+        self.currentAI = WANDERING
 
     def update(self, world, player, flashlight, camPos):
         self.dx = 0; self.dy = 0
@@ -43,6 +43,7 @@ class Enemy(object):
         approachedCenterPnt = ((xl+xr)/2, (yu+yd)/2)  # actual point enemy is approaching in world
         dx, dy = (approachedCenterPnt[0]-self.xPos, approachedCenterPnt[1]-self.yPos)
         if dx == 0 and dy == 0:
+            print "got to ", currentApproachedPnt
             return 0, 0
         else:
             dx, dy = float(dx) / max([abs(dx),abs(dy)]), float(dy) / max([abs(dx), abs(dy)])
@@ -56,23 +57,23 @@ class Enemy(object):
                 self.currentAI = CHASING
             elif not self.isInFlashlightRegion(flashlight, player, camPos) and self.currentAI != CLOSE:
                 self.currentAI = CLOSE
-        elif distToPlayer <= (world.hallLength+world.hallWidth)*3:
+        elif distToPlayer <= (world.hallLength+world.hallWidth)*5:
             if self.currentAI == CLOSE or self.currentAI == CHASING:
                 self.currentAI = RETURNING
             elif self.currentAI == WANDERING:
                 self.currentAI = FOLLOWING
-        elif distToPlayer > (world.hallLength+world.hallWidth)*3 \
-                and self.currentAI != RETURNING and self.currentAI != WANDERING:
-            self.currentAI = WANDERING
+                # is still following WANDERING path, reset path to closest intersect so new path can be made
+                nextPos = world.getClosestIntersectPoint(self)
+                self.currentPath.setPathBetween(nextPos, nextPos)
 
     def getAIDecision(self, world, player, flashlight, camPos):
         """Returns a pair of (dx, dy) for next update movement."""
-        # check if AI behaviour should now change
+        # check if AI behaviour should now change based on what is known currently
         self.changeAIState(world, player, flashlight, camPos)
         # make appropriate movement for current AI state
         if self.currentAI == WANDERING or self.currentAI == FOLLOWING:
             # Is following predetermined paths from intersection to intersection.
-            self.speed = player.speed * 0.5
+            self.speed = player.speed
             # If close enough to player, start following them. Otherwise, keep wandering.
             dx, dy = self.followPathUpdate(world)
             if dx==0 and dy==0:  # has reached destination bc. no further movement needed
@@ -85,12 +86,18 @@ class Enemy(object):
                     gridY = (self.yPos - world.hallWidth) / (world.hallWidth + world.hallLength)
                     pnt1 = (gridX, gridY)
                     pntLs.remove(pnt1)
+                    # if has followed player to where it last heard them + player has left when enemy arrives, set self to WANDERING
+                    # ie. lost track of where player is
+                    distToPlayer = math.sqrt((self.xPos-player.xPos)**2 + (self.yPos-player.yPos)**2)
+                    if distToPlayer > (world.hallLength + world.hallWidth)*5 and self.currentAI != WANDERING:
+                        self.currentAI = WANDERING
                     if self.currentAI == WANDERING:
                         pnt2 = random.choice(pntLs)
                         self.currentPath.setPathBetween(pnt1, pnt2)
                     elif self.currentAI == FOLLOWING:
                         playerCoords = world.getClosestIntersectPoint(player)
                         self.currentPath.setPathBetween(pnt1, playerCoords)
+                        print playerCoords, self.currentPath.getPathList()
                 dx, dy = self.followPathUpdate(world)  # reset goal point to next one in path
             return dx, dy
         elif self.currentAI == CLOSE or self.currentAI == CHASING:
@@ -104,7 +111,7 @@ class Enemy(object):
                 return int(math.ceil(dx*self.speed)), int(math.ceil(dy*self.speed))
         elif self.currentAI == RETURNING:
             # Is returning from directly following player to closest intersection, then WANDERING.
-            self.speed = player.speed * 0.5
+            self.speed = player.speed
             closeInt = world.getClosestIntersectPoint(self)
             xl, yu, xr, yd = world.getIntersectBoundingBox(closeInt)
             approachedCenterPnt = ((xl+xr)/2, (yu+yd)/2)
@@ -112,8 +119,14 @@ class Enemy(object):
             if dx == 0 and dy == 0:
                 self.currentAI = WANDERING
                 return 0, 0
+            elif -self.speed <= dx <= self.speed and -self.speed <= dy <= self.speed:
+                # can't get exactly to return point bc. of rounding errors
+                self.xPos, self.yPos = approachedCenterPnt
+                self.currentAI = WANDERING
+                return 0, 0
             else:
                 dx, dy = float(dx) / max([abs(dx),abs(dy)]), float(dy) / max([abs(dx), abs(dy)])
+                print int(dx*self.speed), int(dy*self.speed)
                 return int(dx*self.speed), int(dy*self.speed)
 
     def isInFlashlightRegion(self, flashlight, player, camPos):
@@ -136,10 +149,9 @@ class Enemy(object):
 class Path(object):
     """A path object which can be reset to be a new path between points."""
 
-    def __init__(self, worldGrid):
-        self.worldGrid = worldGrid
-        self.pntLs = [(x, y) for y, row in enumerate(worldGrid) \
-                             for x, pntDict in enumerate(row) if any(pntDict.values())]
+    def __init__(self, world):
+        self.worldGrid = world.grid
+        self.pntLs = world.getPntList()
         self.currentPath = [self.pntLs[0], self.pntLs[0]]
         self.startPnt = self.pntLs[0]
         self.endPnt = self.pntLs[0]
