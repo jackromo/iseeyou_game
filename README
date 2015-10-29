@@ -27,12 +27,14 @@ Current features:
 -Sound effects for player and enemy
   - Footsteps for player
   - Static sound effect for enemy that gets louder when closer to player
+-Paused status (press ESC)
 
 Planned features:
+-Messages displayed by enemy when things happen
+  - eg. when goes from wandering to following, prints text "I can hear you, can you hear me?"
 -Effective FPS management in GameSession
--Light effects (flickering, dimming, decreasing intensity w/ distance of light, shutdown)
 -Player controls for player running, walking and sneaking
--Textures for floor, enemy and player sprite
--Game Over and Paused statuses
+-Textures for enemy and player sprite
+-Game Over status
 -Main menu
   -New game, high scores, exit

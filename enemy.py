@@ -48,8 +48,8 @@ class Enemy(object):
             self.sound.play(loops=-1)
             self.isSoundPlaying=True
         self.sound.set_volume(0 if distToPlayer > self.maxPlayerDistForSound else volume)
-        if distToPlayer <= self.maxPlayerDistForSound:
-            print volume
+        #if distToPlayer <= self.maxPlayerDistForSound:
+        #    print volume
 
     def followPathUpdate(self, world):
         """Return (dx, dy) result of update where enemy continues to follow its predecided path."""

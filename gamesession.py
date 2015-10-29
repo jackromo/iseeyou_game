@@ -27,10 +27,20 @@ class GameSession(object):
 
     def start(self):
         self.keys = pygame.key.get_pressed()
+        wasESCPressed = False  # was ESC pressed last turn
+        paused = False
         while not self.keys[pygame.K_q]:
             self.keys = pygame.key.get_pressed()
-            self.update()
-            self.render()
+            if not self.keys[pygame.K_ESCAPE] and wasESCPressed:  # invert whether paused or not if escape pressed + released
+                paused = not paused
+                if paused: pygame.mixer.pause()
+                else:      pygame.mixer.unpause()
+            if paused:
+                self.renderPause()
+            else:
+                self.update()
+                self.render()
+            wasESCPressed = self.keys[pygame.K_ESCAPE]
             pygame.display.flip()
             pygame.event.pump()
 
@@ -46,6 +56,12 @@ class GameSession(object):
         self.player.drawTo(self.screen)
         self.enemy.drawTo(self.screen, self.flashlight, self.player, (self.xCam, self.yCam))
         self.flashlight.drawLight(self.world, self.player, (self.xCam, self.yCam))
+
+    def renderPause(self):
+        font = pygame.font.SysFont("comicsans", 50)
+        text = font.render("Paused", 1, (255, 255, 255))
+        self.screen.blit(text, (0, 0))
+
 
 def main():
     pygame.init()
