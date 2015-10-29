@@ -1,11 +1,17 @@
 Horror Game
 
+Requirements:
+-Python 2.7
+-Pygame
+-Linux distro OS
+
 This is a top-down 2D survival horror game.
-The player starts in a random sewer network, having only a flashlight with limited FOV and finite battery life.
-An invisible enemy starts some distance from the player, who must keep the flashlight on for as long as possible while evading the enemy.
+The player starts in a random tunnel network, having only a flashlight with limited FOV.
+An invisible enemy starts some distance from the player, who the player must evade throughout the game.
 The opponent slowly follows the player based on the noises they make, and cannot be looked at; if the player does, the enemy will move many times faster.
 The enemy is also invisible unless the player shines their flashlight directly at them - if they do, they will see a series of footsteps running towards them.
-The player must listen for the enemy's footsteps while running (loud), walking (some noise) and sneaking (no noise) to keep away while solving puzzles.
+The player must listen for the enemy's sound (static noise) while running (loud), walking (some noise) and sneaking (no noise) to keep away.
+The goal is to find exits to each dungeon floor and advance as many floors down the labyrinth as possible before dying at the hands of the enemy.
 
 Current features:
 -Working World generation algorithm
@@ -28,12 +34,17 @@ Current features:
   - Footsteps for player
   - Static sound effect for enemy that gets louder when closer to player
 -Paused status (press ESC)
+-Ability to die by being hit by enemy
+-Multiple 'levels', ie. floors to dungeon
+  -Next one can be accessed by getting to exit on current dungeon floor
+  -Each level = new randomly generated world
 
 Planned features:
 -Messages displayed by enemy when things happen
   - eg. when goes from wandering to following, prints text "I can hear you, can you hear me?"
 -Effective FPS management in GameSession
--Player controls for player running, walking and sneaking
+-Player controls for player running (SHIFT), walking and sneaking (CTRL)
+  -If player is running, enemy will be set to FOLLOWING; if sneaking, enemy cannot detect them
 -Textures for enemy and player sprite
 -Game Over status
 -Main menu

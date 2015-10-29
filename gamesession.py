@@ -9,23 +9,40 @@ class GameSession(object):
     """A session of playing the game."""
 
     def __init__(self, screen):
+        self.screen = screen
         self.world = World(10, 10)
+        self.newGame()
+
+    def newGame(self):
+        pygame.mixer.stop()
+        self.world.resetWorld()
         self.world.genWorld(5, 5)
         self.player = Player(*self.world.getStartPoint())
         # get enemy's random position
         pntLs = self.world.getPntList()
-        pntLs.remove(self.world.getClosestIntersectPoint(self.player))
-        pnt = random.choice(pntLs)
+        # put enemy somewhere > 5 hallways away from player to start with
+        enemyStartPositions = [p for p in pntLs if abs(p[0]-self.player.xPos)>5 and abs(p[1]-self.player.yPos)>5]
+        pnt = random.choice(pntLs if len(enemyStartPositions)==0 else enemyStartPositions)
         xl, yu, xr, yd = self.world.getIntersectBoundingBox(pnt)
         px, py = ((xl+xr)/2, (yu+yd)/2)
         self.enemy = Enemy(px, py, self.world)
-        self.flashlight = Flashlight(screen, 1)  # flashlight w/ range of 1 radian
-        self.screen = screen
+        self.flashlight = Flashlight(self.screen, 1)  # flashlight w/ range of 1 radian
         self.keys = None
         self.xCam = 0
         self.yCam = 0
 
-    def start(self):
+    def startGame(self):
+        """Start session of playing game."""
+        beatLevel = True
+        currentLevel = 0
+        while beatLevel:
+            beatLevel = self.startLevel()
+            if beatLevel: currentLevel += 1
+        return currentLevel
+
+    def startLevel(self):
+        """Start play of a level. Returns True if player got to end, False if killed by enemy or player quit."""
+        self.newGame()
         self.keys = pygame.key.get_pressed()
         wasESCPressed = False  # was ESC pressed last turn
         paused = False
@@ -41,8 +58,15 @@ class GameSession(object):
                 self.update()
                 self.render()
             wasESCPressed = self.keys[pygame.K_ESCAPE]
+            if (-10 < self.enemy.xPos-self.player.xPos < 10) and (-10 < self.enemy.yPos-self.player.yPos < 10):
+                # enemy got to player, player = killed
+                return False
+            elif self.world.hasReachedExit(self.player):
+                # player reached exit
+                return True
             pygame.display.flip()
             pygame.event.pump()
+        return False  # player hit 'q' to quit game
 
     def update(self):
         self.player.update(self.keys, self.world)

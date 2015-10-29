@@ -39,10 +39,6 @@ class Player(object):
             self.footstepSound.stop()  # when player stops moving, stop footstep sound loop
             self.isFootstepsPlaying = False
 
-
-    def kill(self):
-        pass
-
     def drawTo(self, screen):
         x, y = screen.get_size()
         pygame.draw.rect(screen, (255, 0, 0), pygame.Rect(x/2 - 10, y/2 - 10, 20, 20))

@@ -20,12 +20,14 @@ class World(object):
         self.hallLength = 1200
         self.startX = 0; self.startY = 0
         self.floorColor = (127, 127, 127)
+        self.exitColor = (255, 0, 0)
+        self.exitArea = None  # hall intersect containing exit point
 
     def resetWorld(self):
         self.grid = [[{ (x-1, y): False,
                         (x, y-1): False,
                         (x+1, y): False,
-                        (x, y+1): False} for x in range(width)] for y in range(height)]
+                        (x, y+1): False} for x in range(self.width)] for y in range(self.height)]
 
     def getSidePnts(self, x, y):
         """Get all intersect points adjacent to a point. Ignore points outside of grid boundaries."""
@@ -64,6 +66,10 @@ class World(object):
                 sidePnts = [p for p in sidePnts if gridNewVal[p]]
                 activeNodes.extend([p for p in sidePnts if p not in activeNodes and p not in connectedNodes])
         self.correctStrayIntersects()
+        # choose exit area to be somewhere at least 5x5 hallways away from player
+        exitAreaPossibilities = [p for p in self.getPntList() if abs(p[0]-startX)==1 and abs(p[1]-startY)==1]
+        self.exitArea = random.choice(self.getPntList() if len(exitAreaPossibilities)==0 \
+                                      else exitAreaPossibilities)
 
     def getPntList(self):
         return [(x, y) for y, row in enumerate(self.grid) \
@@ -125,6 +131,12 @@ class World(object):
         yIntReal = int((yu - self.hallWidth) / (self.hallWidth + self.hallLength))
         return (xIntReal, yIntReal)
 
+    def hasReachedExit(self, player):
+        xl, yu, xr, yd = self.getIntersectBoundingBox(self.exitArea)
+        centerPnt = ((xl+xr)/2, (yu+yd)/2)
+        dist = math.sqrt((centerPnt[0]-player.xPos)**2 + (centerPnt[1]-player.yPos)**2)
+        return dist <= 50
+
     def drawWorld(self, screen, xCam, yCam):
         """Draws world to screen with camera offset of (xCam, yCam)."""
         worldWidth = self.width*self.hallWidth + (self.width-1)*self.hallLength
@@ -142,10 +154,11 @@ class World(object):
             rect = pygame.Rect(xStart-xCam, yStart-yCam, xWidth, yHeight)
             pygame.draw.rect(screen, self.floorColor, rect)
         for p in intersects:
+            color = self.exitColor if p == self.exitArea else self.floorColor
             xLeft = p[0]*(self.hallWidth + self.hallLength) + self.hallWidth
             yUp = p[1]*(self.hallWidth + self.hallLength) + self.hallWidth
             rect = pygame.Rect(xLeft-xCam, yUp-yCam, self.hallWidth, self.hallWidth)
-            pygame.draw.rect(screen, self.floorColor, rect)
+            pygame.draw.rect(screen, color, rect)
 
 
 def main():
