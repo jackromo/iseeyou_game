@@ -67,7 +67,7 @@ class World(object):
                 activeNodes.extend([p for p in sidePnts if p not in activeNodes and p not in connectedNodes])
         self.correctStrayIntersects()
         # choose exit area to be somewhere at least 5x5 hallways away from player
-        exitAreaPossibilities = [p for p in self.getPntList() if abs(p[0]-startX)==1 and abs(p[1]-startY)==1]
+        exitAreaPossibilities = [p for p in self.getPntList() if abs(p[0]-startX)>=5 and abs(p[1]-startY)>=5]
         self.exitArea = random.choice(self.getPntList() if len(exitAreaPossibilities)==0 \
                                       else exitAreaPossibilities)
 

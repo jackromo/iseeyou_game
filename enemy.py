@@ -48,8 +48,6 @@ class Enemy(object):
             self.sound.play(loops=-1)
             self.isSoundPlaying=True
         self.sound.set_volume(0 if distToPlayer > self.maxPlayerDistForSound else volume)
-        #if distToPlayer <= self.maxPlayerDistForSound:
-        #    print volume
 
     def followPathUpdate(self, world):
         """Return (dx, dy) result of update where enemy continues to follow its predecided path."""
@@ -72,7 +70,7 @@ class Enemy(object):
                 self.currentAI = CHASING
             elif not self.isInFlashlightRegion(flashlight, player, camPos) and self.currentAI != CLOSE:
                 self.currentAI = CLOSE
-        elif distToPlayer <= self.maxPlayerDistForSound:
+        elif distToPlayer <= player.getHeardRadius(world):
             if self.currentAI == CLOSE or self.currentAI == CHASING:
                 self.currentAI = RETURNING
             elif self.currentAI == WANDERING:
@@ -89,7 +87,7 @@ class Enemy(object):
         # make appropriate movement for current AI state
         if self.currentAI == WANDERING or self.currentAI == FOLLOWING:
             # Is following predetermined paths from intersection to intersection.
-            self.speed = player.speed * 0.7
+            self.speed = 5
             # If close enough to player, start following them. Otherwise, keep wandering.
             dx, dy = self.followPathUpdate(world)
             if dx==0 and dy==0:  # has reached destination bc. no further movement needed
@@ -104,7 +102,7 @@ class Enemy(object):
                     # if has followed player to where it last heard them + player has left when enemy arrives, set self to WANDERING
                     # ie. lost track of where player is
                     distToPlayer = math.sqrt((self.xPos-player.xPos)**2 + (self.yPos-player.yPos)**2)
-                    if distToPlayer > self.maxPlayerDistForSound and self.currentAI != WANDERING:
+                    if distToPlayer > player.getHeardRadius(world) and self.currentAI != WANDERING:
                         self.currentAI = WANDERING
                     if self.currentAI == WANDERING:
                         pnt2 = random.choice(pntLs)
@@ -115,8 +113,8 @@ class Enemy(object):
                 dx, dy = self.followPathUpdate(world)  # reset goal point to next one in path
             return dx, dy
         elif self.currentAI == CLOSE or self.currentAI == CHASING:
-            # Is moving directly towards player at speed < player speed if close or > player speed if chasing (flashlight looking at enemy when chasing).
-            self.speed = player.speed * (1.5 if self.currentAI == CHASING else 0.7)
+            # Is moving directly towards player at speed = walking speed if close or > player speed if chasing (flashlight looking at enemy when chasing).
+            self.speed = (player.speed*1.5) if self.currentAI == CHASING else 6
             diffX, diffY = (player.xPos - self.xPos, player.yPos - self.yPos)
             if diffX == 0 and diffY == 0:
                 return 0, 0
@@ -125,7 +123,7 @@ class Enemy(object):
                 return int(math.ceil(dx*self.speed)), int(math.ceil(dy*self.speed))
         elif self.currentAI == RETURNING:
             # Is returning from directly following player to closest intersection, then WANDERING.
-            self.speed = player.speed
+            self.speed = 6
             closeInt = world.getClosestIntersectPoint(self)
             xl, yu, xr, yd = world.getIntersectBoundingBox(closeInt)
             approachedCenterPnt = ((xl+xr)/2, (yu+yd)/2)

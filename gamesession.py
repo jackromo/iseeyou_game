@@ -21,7 +21,7 @@ class GameSession(object):
         # get enemy's random position
         pntLs = self.world.getPntList()
         # put enemy somewhere > 5 hallways away from player to start with
-        enemyStartPositions = [p for p in pntLs if abs(p[0]-self.player.xPos)>5 and abs(p[1]-self.player.yPos)>5]
+        enemyStartPositions = [p for p in pntLs if abs(p[0]-self.player.xPos)>7 and abs(p[1]-self.player.yPos)>7]
         pnt = random.choice(pntLs if len(enemyStartPositions)==0 else enemyStartPositions)
         xl, yu, xr, yd = self.world.getIntersectBoundingBox(pnt)
         px, py = ((xl+xr)/2, (yu+yd)/2)

@@ -38,14 +38,14 @@ Current features:
 -Multiple 'levels', ie. floors to dungeon
   -Next one can be accessed by getting to exit on current dungeon floor
   -Each level = new randomly generated world
+-Running, walking and sneaking controls for player
+  -Running = loud (enemy will hear player from anywhere), walking = moderate volume, sneaking = quiet, standing = silent
+  -Stamina for running = limited, need to recharge afterwards
 
 Planned features:
 -Messages displayed by enemy when things happen
   - eg. when goes from wandering to following, prints text "I can hear you, can you hear me?"
 -Effective FPS management in GameSession
--Player controls for player running (SHIFT), walking and sneaking (CTRL)
-  -If player is running, enemy will be set to FOLLOWING; if sneaking, enemy cannot detect them
 -Textures for enemy and player sprite
--Game Over status
 -Main menu
   -New game, high scores, exit
