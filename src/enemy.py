@@ -1,4 +1,4 @@
-import pygame, random, math, copy, time
+import pygame, random, math, copy, time, os
 from flashlight import Flashlight, getActualAng
 
 
@@ -17,7 +17,7 @@ class Enemy(object):
         self.yPos = yPos
         self.dx = self.dy = 0
         self.speed = 4
-        self.sound = pygame.mixer.Sound("resources/sound/enemyNoise.wav")
+        self.sound = pygame.mixer.Sound(os.path.join("resources","sound","enemyNoise.wav"))
         self.isSoundPlaying = False
         self.maxPlayerDistForSound = 3*(world.hallWidth + world.hallLength)  # dist where sound plays + enemy follows player
         self.currentPath = Path(world)

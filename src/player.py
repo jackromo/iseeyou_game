@@ -1,4 +1,4 @@
-import pygame
+import pygame, os
 from world import World
 
 STANDING = 0
@@ -12,9 +12,9 @@ class Player(object):
     def __init__(self, xPos, yPos):
         self.xPos = xPos
         self.yPos = yPos
-        self.footstepSounds = {SNEAKING: pygame.mixer.Sound("resources/sound/footstepsSneaking.wav"),
-                                WALKING: pygame.mixer.Sound("resources/sound/footstepsWalking.wav"),
-                                RUNNING: pygame.mixer.Sound("resources/sound/footstepsRunning.wav")}
+        self.footstepSounds = {SNEAKING: pygame.mixer.Sound(os.path.join("resources","sound","footstepsSneaking.wav")),
+                                WALKING: pygame.mixer.Sound(os.path.join("resources","sound","footstepsWalking.wav")),
+                                RUNNING: pygame.mixer.Sound(os.path.join("resources","sound","footstepsRunning.wav"))}
         self.lightAng = 0  # angle of light above rightwards vector, in radians
         self.dx = 0  # x and y components of own velocity
         self.dy = 0
