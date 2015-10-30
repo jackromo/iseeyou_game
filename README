@@ -45,9 +45,11 @@ Current features:
   -Play, controls and quit options
   -Background = fake game session, flashlight moves w/ mouse
 -Fade transition between dungeon levels and from menu to game
+-Messages displayed by enemy when things happen
+  -At random, about every 1.5 mins, a lowercase no-spaces line is shown in dark red at bottom right corner of screen
+-Better image for exit region created, a series of darker + darker layers going down as a hole
 
 
 Planned features:
--Messages displayed by enemy when things happen
-  - eg. when goes from wandering to following, prints text "I can hear you, can you hear me?"
--Better image for exit region
+-Textures for floor, exit, player, and enemy
+-More sounds for enemy, eg. heavy breathing or more static overlayed when closer

@@ -1,4 +1,4 @@
-import pygame, random, math, copy
+import pygame, random, math, copy, time
 from flashlight import Flashlight, getActualAng
 
 
@@ -114,7 +114,7 @@ class Enemy(object):
             return dx, dy
         elif self.currentAI == CLOSE or self.currentAI == CHASING:
             # Is moving directly towards player at speed = walking speed if close or > player speed if chasing (flashlight looking at enemy when chasing).
-            self.speed = (player.speed*1.5) if self.currentAI == CHASING else 6
+            self.speed = (player.speed*1.5) if self.currentAI == CHASING else 5
             diffX, diffY = (player.xPos - self.xPos, player.yPos - self.yPos)
             if diffX == 0 and diffY == 0:
                 return 0, 0
@@ -153,8 +153,7 @@ class Enemy(object):
 
     def drawTo(self, screen, flashlight, player, camPos):
         if self.isInFlashlightRegion(flashlight, player, camPos):
-            pygame.draw.circle(screen, (0,0,255), (self.xPos - camPos[0], self.yPos - camPos[1]), 10, 0)
-            #pygame.draw.rect(screen, (0,0,255), pygame.Rect(self.xPos - camPos[0], self.yPos - camPos[1], 10, 10))
+            pygame.draw.circle(screen, (0,0,0), (self.xPos - camPos[0], self.yPos - camPos[1]), 10, 0)
 
 
 

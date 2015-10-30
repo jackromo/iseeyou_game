@@ -32,6 +32,9 @@ class GameSession(object):
         self.keys = None
         self.xCam = 0
         self.yCam = 0
+        self.messages = ["iloveyou","yourhairsmellsnice","stop","imscared","canyouhearme?","youcantleave"]
+        self.startTime = time.clock()  # time since last message started / removed
+        self.currentMessage = None
 
     def startGame(self):
         """Start session of playing game."""
@@ -88,6 +91,18 @@ class GameSession(object):
         self.player.drawTo(self.screen)
         self.enemy.drawTo(self.screen, self.flashlight, self.player, (self.xCam, self.yCam))
         self.flashlight.drawLight(self.world, self.player, (self.xCam, self.yCam))
+        # draw random message from enemy
+        if time.clock() - self.startTime >= random.choice(range(90, 120)) \
+                and random.random() < 0.1 and self.currentMessage==None:
+            self.currentMessage = random.choice(self.messages)
+            self.startTime = time.clock()
+        if self.currentMessage != None:
+            textFont = pygame.font.SysFont("comicsans", 50)
+            line = textFont.render(self.currentMessage, 1, (127, 0, 0))
+            self.screen.blit(line, (400, 600))
+            if time.clock() - self.startTime > 3:
+                self.currentMessage = None
+                self.startTime = time.clock()
 
     def updateFake(self):
         """Use a false game session for display on menu; fake session update detailed here."""

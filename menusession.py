@@ -105,5 +105,5 @@ class MenuSession(object):
             pygame.draw.rect(self.screen, (0,0,0), pygame.Rect(0,0,w,h))
             textFont = pygame.font.SysFont("comicsans", 50)
             line = textFont.render("igotyou", 1, (127, 0, 0))
-            self.screen.blit(line, (500, 500))
+            self.screen.blit(line, (400, 600))
             pygame.display.flip()

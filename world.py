@@ -20,7 +20,6 @@ class World(object):
         self.hallLength = 1200
         self.startX = 0; self.startY = 0
         self.floorColor = (127, 127, 127)
-        self.exitColor = (255, 0, 0)
         self.exitArea = None  # hall intersect containing exit point
 
     def resetWorld(self):
@@ -67,7 +66,7 @@ class World(object):
                 activeNodes.extend([p for p in sidePnts if p not in activeNodes and p not in connectedNodes])
         self.correctStrayIntersects()
         # choose exit area to be somewhere at least 5x5 hallways away from player
-        exitAreaPossibilities = [p for p in self.getPntList() if abs(p[0]-startX)>=5 and abs(p[1]-startY)>=5]
+        exitAreaPossibilities = [p for p in self.getPntList() if abs(p[0]-startX)>=3 and abs(p[1]-startY)>=3]
         self.exitArea = random.choice(self.getPntList() if len(exitAreaPossibilities)==0 \
                                       else exitAreaPossibilities)
 
@@ -154,11 +153,15 @@ class World(object):
             rect = pygame.Rect(xStart-xCam, yStart-yCam, xWidth, yHeight)
             pygame.draw.rect(screen, self.floorColor, rect)
         for p in intersects:
-            color = self.exitColor if p == self.exitArea else self.floorColor
             xLeft = p[0]*(self.hallWidth + self.hallLength) + self.hallWidth
             yUp = p[1]*(self.hallWidth + self.hallLength) + self.hallWidth
             rect = pygame.Rect(xLeft-xCam, yUp-yCam, self.hallWidth, self.hallWidth)
-            pygame.draw.rect(screen, color, rect)
+            pygame.draw.rect(screen, self.floorColor, rect)
+            if p == self.exitArea:
+                rect2 = pygame.Rect(xLeft-xCam+50, yUp-yCam+50, self.hallWidth-(2*50), self.hallWidth-(2*50))
+                pygame.draw.rect(screen, (63, 63, 63), rect2)
+                rect3 = pygame.Rect(xLeft-xCam+100, yUp-yCam+100, self.hallWidth-(2*100), self.hallWidth-(2*100))
+                pygame.draw.rect(screen, (0, 0, 0), rect3)
 
 
 def main():
