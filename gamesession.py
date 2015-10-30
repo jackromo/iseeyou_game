@@ -1,4 +1,4 @@
-import pygame, math, time, random
+import pygame, math, time, random, copy
 from world import World
 from player import Player
 from enemy import Enemy
@@ -10,8 +10,9 @@ class GameSession(object):
 
     def __init__(self, screen):
         self.screen = screen
+        w, h = self.screen.get_size()
+        pygame.draw.rect(self.screen, (0,0,0), pygame.Rect(0,0,w,h))
         self.world = World(10, 10)
-        self.newGame()
 
     def newGame(self):
         pygame.mixer.stop()
@@ -21,7 +22,8 @@ class GameSession(object):
         # get enemy's random position
         pntLs = self.world.getPntList()
         # put enemy somewhere > 5 hallways away from player to start with
-        enemyStartPositions = [p for p in pntLs if abs(p[0]-self.player.xPos)>7 and abs(p[1]-self.player.yPos)>7]
+        xPlayer, yPlayer = self.world.getClosestIntersectPoint(self.player)
+        enemyStartPositions = [p for p in pntLs if abs(p[0]-xPlayer)>4 or abs(p[1]-yPlayer)>4]
         pnt = random.choice(pntLs if len(enemyStartPositions)==0 else enemyStartPositions)
         xl, yu, xr, yd = self.world.getIntersectBoundingBox(pnt)
         px, py = ((xl+xr)/2, (yu+yd)/2)
@@ -43,7 +45,13 @@ class GameSession(object):
     def startLevel(self):
         """Start play of a level. Returns True if player got to end, False if killed by enemy or player quit."""
         self.newGame()
+        # make transition effect to new level
+        prevScreen = pygame.Surface(self.screen.get_size())
+        prevScreen.blit(self.screen, (0,0))
         self.keys = pygame.key.get_pressed()
+        self.update()
+        self.render()
+        self.renderTransition(prevScreen, self.screen)
         wasESCPressed = False  # was ESC pressed last turn
         paused = False
         while not self.keys[pygame.K_q]:
@@ -81,10 +89,35 @@ class GameSession(object):
         self.enemy.drawTo(self.screen, self.flashlight, self.player, (self.xCam, self.yCam))
         self.flashlight.drawLight(self.world, self.player, (self.xCam, self.yCam))
 
+    def updateFake(self):
+        """Use a false game session for display on menu; fake session update detailed here."""
+        x, y = self.screen.get_size()
+        self.xCam = self.player.xPos - x/2
+        self.yCam = self.player.yPos - y/2
+
+    def renderFake(self):
+        """Use a false game session for display on menu; fake session rendering detailed here."""
+        x, y = self.screen.get_size()
+        self.world.drawWorld(self.screen, self.xCam, self.yCam)
+        self.player.drawTo(self.screen)
+        self.flashlight.drawLight(self.world, self.player, (self.xCam, self.yCam))
+
     def renderPause(self):
         font = pygame.font.SysFont("comicsans", 50)
         text = font.render("Paused", 1, (255, 255, 255))
         self.screen.blit(text, (0, 0))
+
+    def renderTransition(self, frame1, frame2):
+        """fade from one image to another."""
+        frame1 = frame1.convert(); frame2 = frame2.convert()
+        w, h = self.screen.get_size()
+        for alpha2 in range(255):
+            alpha1 = 255-alpha2
+            frame1.set_alpha(alpha1); frame2.set_alpha(alpha2)
+            pygame.draw.rect(self.screen, (0,0,0), pygame.Rect(0, 0, w, h))
+            self.screen.blit(frame1, (0,0))
+            self.screen.blit(frame2, (0,0))
+            pygame.display.flip()
 
 
 def main():

@@ -41,11 +41,13 @@ Current features:
 -Running, walking and sneaking controls for player
   -Running = loud (enemy will hear player from anywhere), walking = moderate volume, sneaking = quiet, standing = silent
   -Stamina for running = limited, need to recharge afterwards
+-Add main menu
+  -Play, controls and quit options
+  -Background = fake game session, flashlight moves w/ mouse
+-Fade transition between dungeon levels and from menu to game
+
 
 Planned features:
 -Messages displayed by enemy when things happen
   - eg. when goes from wandering to following, prints text "I can hear you, can you hear me?"
--Effective FPS management in GameSession
--Textures for enemy and player sprite
--Main menu
-  -New game, high scores, exit
+-Better image for exit region
