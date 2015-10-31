@@ -3,7 +3,6 @@ Horror Game
 Requirements:
 -Python 2.7
 -Pygame
--Linux distro OS
 
 This is a top-down 2D survival horror game.
 The player starts in a random tunnel network, having only a flashlight with limited FOV.

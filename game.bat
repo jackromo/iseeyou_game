@@ -1,2 +1,1 @@
-ECHO OFF
-python .\src\main.py
+c:\python27\python.exe .\src\main.py
