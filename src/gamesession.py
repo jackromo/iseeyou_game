@@ -12,7 +12,7 @@ class GameSession(object):
         self.screen = screen
         w, h = self.screen.get_size()
         pygame.draw.rect(self.screen, (0,0,0), pygame.Rect(0,0,w,h))
-        self.world = World(10, 10)
+        self.world = World(10, 10, self.screen)
 
     def newGame(self):
         pygame.mixer.stop()
@@ -87,7 +87,7 @@ class GameSession(object):
         self.yCam = self.player.yPos - y/2
 
     def render(self):
-        self.world.drawWorld(self.screen, self.xCam, self.yCam)
+        self.world.drawWorld(self.xCam, self.yCam, self.player)
         self.player.drawTo(self.screen)
         self.enemy.drawTo(self.screen, self.flashlight, self.player, (self.xCam, self.yCam))
         self.flashlight.drawLight(self.world, self.player, (self.xCam, self.yCam))
@@ -113,7 +113,7 @@ class GameSession(object):
     def renderFake(self):
         """Use a false game session for display on menu; fake session rendering detailed here."""
         x, y = self.screen.get_size()
-        self.world.drawWorld(self.screen, self.xCam, self.yCam)
+        self.world.drawWorld(self.xCam, self.yCam, self.player)
         self.player.drawTo(self.screen)
         self.flashlight.drawLight(self.world, self.player, (self.xCam, self.yCam))
 

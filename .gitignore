@@ -1,3 +1,4 @@
 resources/*
 *.wav
 *.png
+*.pyc

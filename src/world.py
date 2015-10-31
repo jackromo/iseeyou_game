@@ -7,11 +7,12 @@ import time
 class World(object):
     """World object for horror game. A series of random sprawling hallways in all directions."""
 
-    def __init__(self, width=20, height=20):
+    def __init__(self, width, height, screen):
         assert(type(width) is int)
         assert(type(height) is int)
         self.width = width
         self.height = height
+        self.screen = screen
         self.grid = [[{ (x-1, y): False,
                         (x, y-1): False,
                         (x+1, y): False,
@@ -136,13 +137,12 @@ class World(object):
         dist = math.sqrt((centerPnt[0]-player.xPos)**2 + (centerPnt[1]-player.yPos)**2)
         return dist <= 50
 
-    def drawWorld(self, screen, xCam, yCam):
+    def drawWorld(self, xCam, yCam, player):
         """Draws world to screen with camera offset of (xCam, yCam)."""
-        worldWidth = self.width*self.hallWidth + (self.width-1)*self.hallLength
-        worldHeight = self.height*self.hallWidth + (self.height-1)*self.hallLength
-        pygame.draw.rect(screen, (0, 0, 0), pygame.Rect(0, 0, worldWidth, worldHeight))  # black background
-        hallways = self.getHallways()
-        intersects = self.getHallIntersectPoints()
+        w, h = self.screen.get_size()
+        pygame.draw.rect(self.screen, (0,0,0), pygame.Rect(0, 0, w, h))  # black background
+        intersect = self.getClosestIntersectPoint(player)
+        hallways = [(sidePnts, intersect) for sidePnts in self.getSidePnts(*intersect)]
         for p0, p1 in hallways:
             # starting x pnt of line = one intercept + many intercept-hallLength pairs + another intercept if line goes to right
             xStart = self.hallWidth + p0[0]*(self.hallWidth + self.hallLength) + (self.hallWidth if p1[0]-p0[0]==1 else 0)
@@ -151,35 +151,16 @@ class World(object):
             xWidth = self.hallWidth if p1[0]-p0[0]==0 else self.hallLength*(p1[0]-p0[0])
             yHeight = self.hallWidth if p1[1]-p0[1]==0 else self.hallLength*(p1[1]-p0[1])
             rect = pygame.Rect(xStart-xCam, yStart-yCam, xWidth, yHeight)
-            pygame.draw.rect(screen, self.floorColor, rect)
-        for p in intersects:
-            xLeft = p[0]*(self.hallWidth + self.hallLength) + self.hallWidth
-            yUp = p[1]*(self.hallWidth + self.hallLength) + self.hallWidth
-            rect = pygame.Rect(xLeft-xCam, yUp-yCam, self.hallWidth, self.hallWidth)
-            pygame.draw.rect(screen, self.floorColor, rect)
-            if p == self.exitArea:
-                rect2 = pygame.Rect(xLeft-xCam+50, yUp-yCam+50, self.hallWidth-(2*50), self.hallWidth-(2*50))
-                pygame.draw.rect(screen, (63, 63, 63), rect2)
-                rect3 = pygame.Rect(xLeft-xCam+100, yUp-yCam+100, self.hallWidth-(2*100), self.hallWidth-(2*100))
-                pygame.draw.rect(screen, (0, 0, 0), rect3)
-
-
-def main():
-    # makes random world, scrolls diagonally down it, prints if exits or re-enters bounds of world
-    world = World(10, 10)
-    world.genWorld(5, 5)
-    pygame.init()
-    screen = pygame.display.set_mode((1000, 1000))
-    inWorld = False
-    for v in range(2000):
-        world.drawWorld(screen, v, v)
-        time.sleep(0.01)
-        inWorldPrev = inWorld; inWorld = world.isInWorld(v+500, v+500)
-        if inWorldPrev and not inWorld:   print "exited world"
-        elif not inWorldPrev and inWorld: print "re-entered world"
-        pygame.draw.rect(screen, (255,0,0), pygame.Rect(498, 498, 4, 4))
-        pygame.display.flip()
-
-
-if __name__ == "__main__":
-    main()
+            pygame.draw.rect(self.screen, self.floorColor, rect)
+        # draw closest intersect
+        xLeft = intersect[0]*(self.hallWidth + self.hallLength) + self.hallWidth
+        yUp = intersect[1]*(self.hallWidth + self.hallLength) + self.hallWidth
+        rect = pygame.Rect(xLeft-xCam, yUp-yCam, self.hallWidth, self.hallWidth)
+        if intersect == self.exitArea:
+            pygame.draw.rect(self.screen, self.floorColor, rect)
+            rect2 = pygame.Rect(xLeft-xCam+50, yUp-yCam+50, self.hallWidth-(2*50), self.hallWidth-(2*50))
+            pygame.draw.rect(self.screen, (63, 63, 63), rect2)
+            rect3 = pygame.Rect(xLeft-xCam+100, yUp-yCam+100, self.hallWidth-(2*100), self.hallWidth-(2*100))
+            pygame.draw.rect(self.screen, (0, 0, 0), rect3)
+        else:
+            pygame.draw.rect(self.screen, self.floorColor, rect)
